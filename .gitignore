@@ -1,0 +1,7 @@
+dist
+.serverless
+node_modules
+.env
+*.log
+deploy
+.aws-sam

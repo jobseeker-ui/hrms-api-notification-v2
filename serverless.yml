@@ -1,0 +1,9 @@
+service: app
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  app:
+    handler: dist/handlers/sqs.handler

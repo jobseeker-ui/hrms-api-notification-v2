@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Combined SAM template for HRMS Notification Dev functions and TESTNotificationService.
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    MemorySize: 1024
+    Timeout: 29
+    Environment:
+      Variables:
+        SNS_TOPIC: !Ref NotificationTopic
+        SQS_QUEUE_URL: !Ref NotificationQueue
+
+Parameters:
+  StageEnv:
+    Type: String
+    Default: dev
+  AtlasAccess:
+    Type: String
+  VPCSecurityGroup:
+    Type: String
+  VPCSubnet1:
+    Type: String
+  VPCSubnet2:
+    Type: String
+  AuthorizerARN:
+    Type: String
+  NotificationDB:
+    Type: String
+  EmployeeDB:
+    Type: String
+
+Resources:
+  # SNS Topic
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: notification-topic
+
+  # SQS Queue
+  NotificationQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: notification-queue
+
+  # SQS Queue Policy
+  NotificationQueuePolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref NotificationQueue
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: 'sqs:SendMessage'
+            Resource: !GetAtt NotificationQueue.Arn
+            Condition:
+              ArnEquals:
+                'aws:SourceArn': !Ref NotificationTopic
+
+  # SNS Topic Subscription
+  NotificationTopicSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: sqs
+      TopicArn: !Ref NotificationTopic
+      Endpoint: !GetAtt NotificationQueue.Arn
+
+  # API Gateway
+  HRMSNotificationDevAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref StageEnv
+      Cors:
+        AllowMethods: "'*'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: CoreAuthorizer
+        Authorizers:
+          CoreAuthorizer:
+            FunctionPayloadType: REQUEST
+            FunctionArn: !Ref AuthorizerARN
+            Identity:
+              Headers:
+                - Authorization
+              ReauthorizeEvery: 0
+        # Disable OPTIONS method from Authorizers
+        AddDefaultAuthorizerToCorsPreflight: False
+
+  # Lambda Function for HRMS
+  HRMSNotificationDevLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handler/http.handler
+      CodeUri: ./.serverless/app.zip
+      Policies:
+        - arn:aws:iam::730335295088:policy/LambdaWithPrivateLinkExecutionRole
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref VPCSecurityGroup
+        SubnetIds:
+          - !Ref VPCSubnet1
+          - !Ref VPCSubnet2
+      AutoPublishAlias: !Ref StageEnv
+      SnapStart:
+        ApplyOn: None
+      Environment:
+        Variables:
+          ATLAS_ACCESS: !Ref AtlasAccess
+          NOTIFICATION_DB: !Ref NotificationDB
+          EMPLOYEE_DB: !Ref EmployeeDB
+      Events:
+        RestApiEvents:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+            RestApiId: !Ref HRMSNotificationDevAPI
+
+  # Lambda Function for SQS
+  SQSHandlerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handler/sqs.handler
+      CodeUri: ./.serverless/app.zip
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !Ref NotificationQueue
+      Events:
+        SQSQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt NotificationQueue.Arn
+            BatchSize: 5
+
+Outputs:
+  HRMSNotificationDevEndpoint:
+    Description: API Gateway HRMS Notification Dev
+    Value:
+      Fn::Sub: https://${HRMSNotificationDevAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageEnv}/
+
+  QueueUrl:
+    Description: URL of the SQS Queue
+    Value: !Ref NotificationQueue
+    Export:
+      Name: NotificationQueueUrl
+
+  QueueArn:
+    Description: ARN of the SQS Queue
+    Value: !GetAtt NotificationQueue.Arn
+    Export:
+      Name: NotificationQueueArn
+
+  TopicArn:
+    Description: ARN of the SNS Topic
+    Value: !Ref NotificationTopic
+    Export:
+      Name: NotificationTopicArn
