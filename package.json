@@ -12,6 +12,7 @@
     "dev": "ts-node-dev --no-notify --respawn --transpile-only ./src/handler/local.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-sns": "^3.637.0",
     "@typegoose/typegoose": "^12.6.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",

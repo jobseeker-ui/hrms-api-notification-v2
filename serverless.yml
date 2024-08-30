@@ -7,3 +7,13 @@ provider:
 functions:
   app:
     handler: dist/handlers/sqs.handler
+
+build:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: false
+    exclude: ['aws-sdk', '@aws-sdk/*']
+    packages: external
+    target: 'node20'
+    platform: 'node'

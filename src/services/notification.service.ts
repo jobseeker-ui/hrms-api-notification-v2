@@ -1,6 +1,8 @@
+import { PublishCommand } from '@aws-sdk/client-sns'
 import { FilterQuery, Types } from 'mongoose'
 import Employee from '../models/employees.model'
 import Notification, { NotificationDocument } from '../models/notifications.model'
+import { snsClient } from '../utils/snsClient'
 
 export const paginate = async ({
   companyId,
@@ -123,6 +125,31 @@ export const createNotification = async ({
     type,
     data,
   })
+
+  try {
+    // Publish notification to SNS topic
+    console.log('Publishing notification to SNS topic')
+    const res = await snsClient.send(
+      new PublishCommand({
+        TopicArn: process.env.SNS_BROADCAST_TOPIC_ARN,
+        Subject: 'COMPANY_NOTIFICATION',
+        Message: JSON.stringify(notification.toJSON()),
+        MessageAttributes: {
+          type: {
+            DataType: 'String',
+            StringValue: type,
+          },
+          companyId: {
+            DataType: 'String',
+            StringValue: companyId.toString(),
+          },
+        },
+      }),
+    )
+    console.log('Notification published', res)
+  } catch (error) {
+    console.error('Error publishing notification', error)
+  }
 
   return notification
 }

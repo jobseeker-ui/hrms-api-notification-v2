@@ -12,8 +12,10 @@ class Application {
 
   constructor() {
     this.app = express()
-
-    connect(String(process.env.ATLAS_ACCESS)).then(() => {
+    connect(String(process.env.ATLAS_ACCESS), {
+      socketTimeoutMS: 0,
+      connectTimeoutMS: 0,
+    }).then(() => {
       this.config()
 
       new SuccessHandler(this.app)

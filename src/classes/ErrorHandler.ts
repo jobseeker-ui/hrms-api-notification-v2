@@ -22,7 +22,6 @@ class ErrorHandler {
     if (err.name !== 'ApiError') {
       const msg = err.message || 'Internal server error'
       error = new ApiError(500, msg, err.stack)
-      console.log(err)
     }
     next(error)
   }

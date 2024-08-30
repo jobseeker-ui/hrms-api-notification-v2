@@ -9,8 +9,15 @@ Globals:
     Timeout: 29
     Environment:
       Variables:
-        SNS_TOPIC: !Ref NotificationTopic
         SQS_QUEUE_URL: !Ref NotificationQueue
+        SNS_CREATE_NOTIFICATION_TOPIC: !Ref SnsTopicCreateNotificationARN
+        SNS_BROADCAST_TOPIC_ARN: !Ref SnsTopicBroadcastNotificationARN
+        JSC_REGION: !Ref JscRegion
+        JSC_ACCESS_KEY_ID: !Ref JscAKey
+        JSC_SECRET_ACCESS_KEY: !Ref JscSKey
+        DB_NOTIFICATION: !Ref NotificationDB
+        DB_EMPLOYEE: !Ref EmployeeDB
+        ATLAS_ACCESS: !Ref AtlasAccess
 
 Parameters:
   StageEnv:
@@ -30,19 +37,23 @@ Parameters:
     Type: String
   EmployeeDB:
     Type: String
+  SnsTopicBroadcastNotificationARN:
+    Type: String
+  SnsTopicCreateNotificationARN:
+    Type: String
+  JscRegion:
+    Type: String
+  JscAKey:
+    Type: String
+  JscSKey:
+    Type: String
 
 Resources:
-  # SNS Topic
-  NotificationTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      TopicName: notification-topic
-
   # SQS Queue
   NotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: notification-queue
+      QueueName: doCreateNotification
 
   # SQS Queue Policy
   NotificationQueuePolicy:
@@ -59,14 +70,15 @@ Resources:
             Resource: !GetAtt NotificationQueue.Arn
             Condition:
               ArnEquals:
-                'aws:SourceArn': !Ref NotificationTopic
+                'aws:SourceArn': !Ref SnsTopicCreateNotificationARN
 
   # SNS Topic Subscription
   NotificationTopicSubscription:
     Type: AWS::SNS::Subscription
     Properties:
       Protocol: sqs
-      TopicArn: !Ref NotificationTopic
+      RawMessageDelivery: true
+      TopicArn: !Ref SnsTopicCreateNotificationARN # Reference the SNS Topic ARN
       Endpoint: !GetAtt NotificationQueue.Arn
 
   # API Gateway
@@ -88,7 +100,6 @@ Resources:
               Headers:
                 - Authorization
               ReauthorizeEvery: 0
-        # Disable OPTIONS method from Authorizers
         AddDefaultAuthorizerToCorsPreflight: False
 
   # Lambda Function for HRMS
@@ -127,6 +138,12 @@ Resources:
     Properties:
       Handler: dist/handler/sqs.handler
       CodeUri: ./.serverless/app.zip
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref VPCSecurityGroup
+        SubnetIds:
+          - !Ref VPCSubnet1
+          - !Ref VPCSubnet2
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !Ref NotificationQueue
@@ -157,6 +174,6 @@ Outputs:
 
   TopicArn:
     Description: ARN of the SNS Topic
-    Value: !Ref NotificationTopic
+    Value: !Ref SnsTopicCreateNotificationARN
     Export:
       Name: NotificationTopicArn
