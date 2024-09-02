@@ -3,7 +3,6 @@ import 'reflect-metadata'
 import { SQSHandler } from 'aws-lambda'
 import Application from '../app'
 import * as notificationService from '../services/notification.service'
-import parseMongoId from '../utils/parseMongoId'
 
 let app: Application
 
@@ -14,12 +13,9 @@ export const handler: SQSHandler = async (event) => {
 
   for (const record of event.Records) {
     try {
-      const companyId = parseMongoId(record.messageAttributes.companyId.stringValue)
-      const type = record.messageAttributes.type.stringValue
       const data = JSON.parse(record.body)
-      if (!type) throw new Error('Missing required attributes')
 
-      await notificationService.createNotification({ companyId, type, data })
+      await notificationService.createNotification(data)
 
       // publish notification with web socket
     } catch (error) {

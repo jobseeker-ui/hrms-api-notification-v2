@@ -1,7 +1,9 @@
 import { PublishCommand } from '@aws-sdk/client-sns'
 import { FilterQuery, Types } from 'mongoose'
+import { logger } from '../config/logger'
 import Employee from '../models/employees.model'
 import Notification, { NotificationDocument } from '../models/notifications.model'
+import parseMongoId from '../utils/parseMongoId'
 import { snsClient } from '../utils/snsClient'
 
 export const paginate = async ({
@@ -107,15 +109,18 @@ export const destroy = async ({
   return notification
 }
 
-export const createNotification = async ({
-  companyId,
-  type,
-  data,
-}: {
-  companyId: Types.ObjectId
-  type: string
-  data: Record<string, any>
-}) => {
+export const createNotification = async (data: Record<string, any>) => {
+  const companyId = parseMongoId(data.companyId)
+  const type = data.type?.toString()
+  const photoUrl = data.photoUrl?.toString()
+  const name = data.name?.toString()
+  const message = data.message?.toString()
+  const path = data.path?.toString()
+
+  if (!type || !companyId || !photoUrl || !name || !message || !path) {
+    throw new Error('Missing required fields')
+  }
+
   const employees = await Employee.find({ 'company._id': companyId, status: 'ACTIVE', deleted_at: null })
   const employeeIds = employees.map((employee) => employee._id)
 
@@ -123,32 +128,24 @@ export const createNotification = async ({
     company_id: companyId,
     employee_ids: employeeIds,
     type,
-    data,
+    photoUrl,
+    name,
+    message,
+    path,
   })
 
   try {
     // Publish notification to SNS topic
-    console.log('Publishing notification to SNS topic')
+    logger.info('Publishing notification to SNS topic')
     const res = await snsClient.send(
       new PublishCommand({
         TopicArn: process.env.SNS_BROADCAST_TOPIC_ARN,
-        Subject: 'COMPANY_NOTIFICATION',
-        Message: JSON.stringify(notification.toJSON()),
-        MessageAttributes: {
-          type: {
-            DataType: 'String',
-            StringValue: type,
-          },
-          companyId: {
-            DataType: 'String',
-            StringValue: companyId.toString(),
-          },
-        },
+        Message: JSON.stringify({ notification: notification.toJSON(), subject: 'COMPANY_NOTIFICATION' }),
       }),
     )
-    console.log('Notification published', res)
+    logger.info('Notification published', res)
   } catch (error) {
-    console.error('Error publishing notification', error)
+    logger.error('Error publishing notification', error)
   }
 
   return notification

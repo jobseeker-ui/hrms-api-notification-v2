@@ -26,8 +26,13 @@ export class NotificationDocument extends TimeStamps {
   @prop({ required: true, alias: 'deletedByEmployeeIds', default: [], type: [Schema.Types.ObjectId] })
   deleted_by_employee_ids!: Types.ObjectId[]
   @prop({ required: true, alias: 'readedBy', default: [], type: ReadedBy }) readed_by!: ReadedBy[]
+
   @prop({ required: true }) type!: string
-  @prop({ required: true, default: {}, type: Schema.Types.Mixed }) data!: object
+  @prop({ required: true }) path!: string
+  @prop({ required: true }) message!: string
+  @prop({ required: true }) name!: string
+
+  @prop({ alias: 'photoUrl' }) photo_url?: string
 }
 
 const Notification = getModelForClass(NotificationDocument)
