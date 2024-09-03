@@ -9,7 +9,7 @@ class Company extends GeneralDataEmbed {
 }
 
 @ModelOptions({
-  existingConnection: connection.useDb(process.env.EMPLOYEE_DB || 'bsc_dev_employee'),
+  existingConnection: connection.useDb(process.env.DB_EMPLOYEE || 'bsc_dev_employee'),
   schemaOptions: {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
     collection: 'employees',

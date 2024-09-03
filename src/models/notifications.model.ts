@@ -10,7 +10,7 @@ class ReadedBy {
 }
 
 @ModelOptions({
-  existingConnection: connection.useDb(process.env.NOTIFICATION_DB || 'bsc_dev_notifications'),
+  existingConnection: connection.useDb(process.env.DB_NOTIFICATION || 'bsc_dev_notification'),
   schemaOptions: {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
     collection: 'notifications',
