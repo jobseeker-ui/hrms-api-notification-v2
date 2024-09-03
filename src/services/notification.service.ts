@@ -122,7 +122,7 @@ export const createNotification = async (data: Record<string, any>) => {
   }
 
   const employees = await Employee.find({ 'company._id': companyId, status: 'ACTIVE', deleted_at: null })
-  const employeeIds = employees.map((employee) => employee._id)
+  const employeeIds = employees.map((employee) => employee._id.toHexString())
 
   const notification = await Notification.create({
     company_id: companyId,
@@ -140,7 +140,7 @@ export const createNotification = async (data: Record<string, any>) => {
     const res = await snsClient.send(
       new PublishCommand({
         TopicArn: process.env.SNS_BROADCAST_TOPIC_ARN,
-        Message: JSON.stringify({ notification: notification.toJSON(), subject: 'COMPANY_NOTIFICATION' }),
+        Message: JSON.stringify({ notification: { ...notification.toJSON(), employeeIds }, subject: 'COMPANY_NOTIFICATION' }),
       }),
     )
     logger.info('Notification published', res)
