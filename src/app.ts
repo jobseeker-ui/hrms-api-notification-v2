@@ -1,21 +1,20 @@
 import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
-import { connect } from 'mongoose'
 import ErrorHandler from './classes/ErrorHandler'
 import SuccessHandler from './classes/SuccessHandler'
+import { connectDB } from './config/connect'
 import { setupLogger } from './config/logger'
 import { setupNotificationRoute } from './routes/notifications.route'
+
+connectDB()
 
 class Application {
   public app: express.Application
 
   constructor() {
     this.app = express()
-    connect(String(process.env.ATLAS_ACCESS), {
-      socketTimeoutMS: 0,
-      connectTimeoutMS: 0,
-    }).then(() => {
+    connectDB().then(() => {
       this.config()
 
       new SuccessHandler(this.app)
