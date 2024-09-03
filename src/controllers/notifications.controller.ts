@@ -17,7 +17,6 @@ export const getNotifications = ca(async (req, res) => {
   if (size > 100) size = 100
 
   const notifications = await notificationService.paginate({ companyId, employeeId, page, size, type })
-
   res.success(notifications)
 })
 

@@ -19,7 +19,7 @@ export const paginate = async ({
   size?: number
   type?: string
 }) => {
-  const skip = page * size
+  const skip = (page - 1) * size
 
   const query: FilterQuery<NotificationDocument> = {
     company_id: companyId,
@@ -30,7 +30,7 @@ export const paginate = async ({
   if (type) query.type = type
 
   const totalElements = await Notification.countDocuments(query)
-  const notifications = await Notification.find(query).skip(skip).limit(size)
+  const notifications = await Notification.find(query).skip(skip).limit(size).exec()
   const totalPages = Math.ceil(totalElements / size)
 
   return {

@@ -1,6 +1,6 @@
 import { isValidObjectId } from 'mongoose'
 
-function transformKeys(obj: any): any {
+export function transformKeys(obj: any): any {
   if (Array.isArray(obj)) {
     return obj.map(transformKeys)
   } else if (obj !== null && typeof obj === 'object') {
@@ -14,7 +14,7 @@ function transformKeys(obj: any): any {
   return obj
 }
 
-function transformValue(value: any): any {
+export function transformValue(value: any): any {
   if (Array.isArray(value)) {
     return value.map(transformKeys)
   } else if (isValidObjectId(value)) {

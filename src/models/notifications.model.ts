@@ -1,7 +1,7 @@
 import { getModelForClass, ModelOptions, prop, Severity } from '@typegoose/typegoose'
 import { TimeStamps } from '@typegoose/typegoose/lib/defaultClasses'
 import { connection, Schema, Types } from 'mongoose'
-import toJSON from '../utils/toJSON'
+import { transformKeys } from '../utils/toJSON'
 
 @ModelOptions({ schemaOptions: { _id: false } })
 class ReadedBy {
@@ -14,7 +14,15 @@ class ReadedBy {
   schemaOptions: {
     timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
     collection: 'notifications',
-    toJSON,
+    toJSON: {
+      transform(_doc: any, ret: any) {
+        ret.oid = ret._id
+        ret.employee_ids = ret.employee_ids.map((el: any) => el.toString())
+        delete ret._id
+        delete ret.__v
+        return transformKeys(ret)
+      },
+    },
   },
   options: {
     allowMixed: Severity.ALLOW,
