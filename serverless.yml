@@ -5,8 +5,10 @@ provider:
   runtime: nodejs20.x
 
 functions:
-  app:
-    handler: dist/handlers/sqs.handler
+  http:
+    handler: dist/lambda.handler
+  sqs:
+    handler: dist/notification-builder/sqs.handler
 
 build:
   esbuild:

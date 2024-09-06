@@ -12,9 +12,6 @@ Globals:
         SQS_QUEUE_URL: !Ref NotificationQueue
         SNS_CREATE_NOTIFICATION_TOPIC: !Ref SnsTopicCreateNotificationARN
         SNS_BROADCAST_TOPIC_ARN: !Ref SnsTopicBroadcastNotificationARN
-        JSC_REGION: !Ref JscRegion
-        JSC_ACCESS_KEY_ID: !Ref JscAKey
-        JSC_SECRET_ACCESS_KEY: !Ref JscSKey
         DB_NOTIFICATION: !Ref NotificationDB
         DB_EMPLOYEE: !Ref EmployeeDB
         ATLAS_ACCESS: !Ref AtlasAccess
@@ -40,12 +37,6 @@ Parameters:
   SnsTopicBroadcastNotificationARN:
     Type: String
   SnsTopicCreateNotificationARN:
-    Type: String
-  JscRegion:
-    Type: String
-  JscAKey:
-    Type: String
-  JscSKey:
     Type: String
 
 Resources:
@@ -78,7 +69,7 @@ Resources:
     Properties:
       Protocol: sqs
       RawMessageDelivery: true
-      TopicArn: !Ref SnsTopicCreateNotificationARN # Reference the SNS Topic ARN
+      TopicArn: !Ref SnsTopicCreateNotificationARN
       Endpoint: !GetAtt NotificationQueue.Arn
 
   # API Gateway
@@ -106,8 +97,8 @@ Resources:
   HRMSNotificationDevLambda:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handler/http.handler
-      CodeUri: ./.serverless/app.zip
+      Handler: dist/lambda.handler
+      CodeUri: ./.serverless/build/app.zip
       Policies:
         - arn:aws:iam::730335295088:policy/LambdaWithPrivateLinkExecutionRole
       VpcConfig:
@@ -136,8 +127,8 @@ Resources:
   SQSHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handler/sqs.handler
-      CodeUri: ./.serverless/app.zip
+      Handler: dist/notification-builder/sqs.handler
+      CodeUri: ./.serverless/build/app.zip
       VpcConfig:
         SecurityGroupIds:
           - !Ref VPCSecurityGroup
@@ -147,6 +138,10 @@ Resources:
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !Ref NotificationQueue
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref SnsTopicCreateNotificationARN
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref SnsTopicBroadcastNotificationARN
       Events:
         SQSQueueEvent:
           Type: SQS

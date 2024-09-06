@@ -1,0 +1,20 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document } from 'mongoose'
+import { MongooseJsonTransformer } from 'src/common/utils/mongoose-json-transformer'
+import { GeneralDataEmbed } from './embed/general-data.schema'
+
+export type EmployeeDocument = Document & Employee
+
+@Schema({ toJSON: MongooseJsonTransformer, timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
+export class Employee {
+  name?: string
+  email?: string
+  company?: GeneralDataEmbed
+  status?: string
+  @Prop({ alias: 'employeeCode' })
+  employee_code?: string
+  @Prop({ alias: 'deletedAt' })
+  deleted_at?: Date
+}
+
+export const EmployeeSchema = SchemaFactory.createForClass(Employee)
