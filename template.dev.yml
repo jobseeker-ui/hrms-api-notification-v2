@@ -14,6 +14,9 @@ Globals:
         SNS_BROADCAST_TOPIC_ARN: !Ref SnsTopicBroadcastNotificationARN
         DB_NOTIFICATION: !Ref NotificationDB
         DB_EMPLOYEE: !Ref EmployeeDB
+        DB_VACANCY: !Ref VacancyDB
+        DB_WS_CONNECTION: !Ref ConnectionDB
+        DB_CANDIDATE: !Ref CandidateDB
         ATLAS_ACCESS: !Ref AtlasAccess
 
 Parameters:
@@ -33,6 +36,12 @@ Parameters:
   NotificationDB:
     Type: String
   EmployeeDB:
+    Type: String
+  VacancyDB:
+    Type: String
+  ConnectionDB:
+    Type: String
+  CandidateDB:
     Type: String
   SnsTopicBroadcastNotificationARN:
     Type: String
@@ -110,11 +119,6 @@ Resources:
       AutoPublishAlias: !Ref StageEnv
       SnapStart:
         ApplyOn: None
-      Environment:
-        Variables:
-          ATLAS_ACCESS: !Ref AtlasAccess
-          NOTIFICATION_DB: !Ref NotificationDB
-          EMPLOYEE_DB: !Ref EmployeeDB
       Events:
         RestApiEvents:
           Type: Api
@@ -138,10 +142,12 @@ Resources:
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !Ref NotificationQueue
-        - SNSPublishMessagePolicy:
-            TopicName: !Ref SnsTopicCreateNotificationARN
-        - SNSPublishMessagePolicy:
-            TopicName: !Ref SnsTopicBroadcastNotificationARN
+        - Statement:
+            Effect: Allow
+            Action: 'sns:Publish'
+            Resource:
+              - !Ref SnsTopicCreateNotificationARN
+              - !Ref SnsTopicBroadcastNotificationARN
       Events:
         SQSQueueEvent:
           Type: SQS

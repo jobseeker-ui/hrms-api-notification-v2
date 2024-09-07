@@ -7,9 +7,13 @@ export type EmployeeDocument = Document & Employee
 
 @Schema({ toJSON: MongooseJsonTransformer, timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Employee {
+  @Prop()
   name?: string
+  @Prop()
   email?: string
+  @Prop()
   company?: GeneralDataEmbed
+  @Prop()
   status?: string
   @Prop({ alias: 'employeeCode' })
   employee_code?: string

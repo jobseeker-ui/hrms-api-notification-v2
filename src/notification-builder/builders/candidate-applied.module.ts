@@ -1,20 +1,22 @@
 import { Module } from '@nestjs/common'
 import { MongooseModule } from '@nestjs/mongoose'
 import { ConnectionNameEnum } from 'src/common/enums/connection-name.enum'
+import { NotificationsModule } from 'src/notifications/notifications.module'
 import { Applicant, ApplicantSchema } from 'src/schemas/applicant.schema'
 import { Employee, EmployeeSchema } from 'src/schemas/employee.schema'
-import { Notification, NotificationSchema } from '../schemas/notification.schema'
-import { NotificationsController } from './notifications.controller'
-import { NotificationsService } from './notifications.service'
+import { Notification, NotificationSchema } from 'src/schemas/notification.schema'
+import { SnsModule } from 'src/sns/sns.module'
+import { CandidateAppliedService } from './candidate-applied.service'
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Employee.name, schema: EmployeeSchema }], ConnectionNameEnum.EMPLOYEE),
     MongooseModule.forFeature([{ name: Notification.name, schema: NotificationSchema }], ConnectionNameEnum.NOTIFICATION),
+    MongooseModule.forFeature([{ name: Employee.name, schema: EmployeeSchema }], ConnectionNameEnum.EMPLOYEE),
     MongooseModule.forFeature([{ name: Applicant.name, schema: ApplicantSchema }], ConnectionNameEnum.VACANCY),
+    NotificationsModule,
+    SnsModule,
   ],
-  controllers: [NotificationsController],
-  providers: [NotificationsService],
-  exports: [NotificationsService],
+  providers: [CandidateAppliedService, CandidateAppliedService],
+  exports: [CandidateAppliedService],
 })
-export class NotificationsModule {}
+export class CandidateAppliedModule {}

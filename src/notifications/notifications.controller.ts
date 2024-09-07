@@ -15,7 +15,7 @@ export class NotificationsController {
   }
 
   @Patch(':id')
-  markAsRead(@Param('id', IsMongoIdPipe) notificationId: Types.ObjectId, @EmployeeId() employeeId: Types.ObjectId) {
-    return this.notificationsService.markAsRead(notificationId, employeeId)
+  markAsRead(@Param('id', IsMongoIdPipe) notificationId: string, @EmployeeId() employeeId: Types.ObjectId) {
+    return this.notificationsService.markAsRead(employeeId, new Types.ObjectId(notificationId))
   }
 }

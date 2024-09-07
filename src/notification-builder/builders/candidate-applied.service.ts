@@ -47,15 +47,13 @@ export class CandidateAppliedService {
 
   private async generate(applicantId: string): Promise<NotificationDocument[]> {
     const applicant = await this.applicantModel.findById(applicantId)
+
     if (!applicant) {
       this.logger.warn(`Applicant with ID ${applicantId} not found`)
       throw new NotFoundException(`Applicant with ID ${applicantId} not found`)
     }
 
-    const employees = await this.employeeModel
-      .find({ 'company._id': applicant.company._id, deleted_at: { $exists: false } })
-      .select('_id')
-      .exec()
+    const employees = await this.employeeModel.find({ 'company._id': applicant.company._id, deleted_at: { $exists: false } }).exec()
 
     if (!employees.length) {
       this.logger.warn(`No active employees found for company ID ${applicant.company._id}`)
@@ -66,9 +64,10 @@ export class CandidateAppliedService {
       group: this.group,
       type: this.type,
       name: applicant.candidate.name || '',
-      photoUrl: applicant.candidate.photoProfile || '',
+      photoUrl: applicant.candidate.photo_profile || '',
       ownerId: employee._id,
       path: `/candidates/management?search=${encodeURIComponent(applicant.candidate.name)}`,
+      message: `${applicant.candidate.name} has applied for a job (${applicant.vacancy.name}).`,
     }))
 
     const notifications = await Promise.all(notificationsData.map((data) => this.notificationModel.create(data)))

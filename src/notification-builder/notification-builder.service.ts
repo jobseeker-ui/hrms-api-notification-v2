@@ -92,6 +92,7 @@ export class NotificationBuilderService {
 
       this.logger.log(`Notifications published successfully for applicant ID: ${data.applicantId}`)
     } catch (error) {
+      error
       this.logger.error('Error generating notifications for CANDIDATE_APPLIED', { data, error })
       throw new Error('Failed to generate notifications')
     }

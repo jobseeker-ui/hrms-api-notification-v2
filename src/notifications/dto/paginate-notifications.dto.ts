@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer'
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator'
+import { NotificationGroupEnum } from 'src/common/enums/notification-group.enum'
 
 export enum SortDirection {
   ASC = 'ASC',
@@ -33,7 +34,7 @@ export class PaginateNotificationsDto {
   @IsEnum(SortDirection)
   sortDirection?: SortDirection = SortDirection.DESC
 
-  @IsString()
+  @IsEnum(NotificationGroupEnum)
   @IsNotEmpty()
   group!: string
 }

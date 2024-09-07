@@ -20,7 +20,6 @@ export class NotificationsService {
 
   async paginate(ownerId: Types.ObjectId, paginateNotificationsDto: PaginateNotificationsDto) {
     const { skip = 0, limit = 20, sortDirection = 'DESC', sortedField = 'createdAt', group } = paginateNotificationsDto
-
     const query: FilterQuery<NotificationDocument> = {
       owner_id: ownerId,
       deleted_at: { $exists: false },
@@ -74,7 +73,7 @@ export class NotificationsService {
 
   async markAsRead(ownerId: Types.ObjectId, notificationId: Types.ObjectId) {
     const result = await this.notificationModel.updateOne(
-      { _id: notificationId, owner_id: ownerId, deleted_at: { $exists: false } },
+      { _id: notificationId, owner_id: ownerId, deleted_at: { $exists: false }, read_at: { $exists: false } },
       { $set: { read_at: new Date() } },
     )
 

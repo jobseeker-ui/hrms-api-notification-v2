@@ -1,10 +1,9 @@
 import { Logger, Module } from '@nestjs/common'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { MongooseModule } from '@nestjs/mongoose'
-import { ConnectionNameEnum } from './common/enums/connection-name.enum'
-import { NotificationBuilderModule } from './notification-builder/notification-builder.module'
-import { NotificationsModule } from './notifications/notifications.module'
-import { SnsModule } from './sns/sns.module'
+import { ConnectionNameEnum } from '../common/enums/connection-name.enum'
+import { NotificationBuilderModule } from '../notification-builder/notification-builder.module'
+import { NotificationsModule } from '../notifications/notifications.module'
 
 const connections = [
   ConnectionNameEnum.CANDIDATE,
@@ -28,7 +27,7 @@ const connections = [
             autoIndex: true,
             connectionFactory: (connection) => {
               connection.on('connected', () => {
-                logger.log(`Connected to DB ${connection.db.databaseName} on host ${connection.host} on port ${connection.port}`)
+                logger.log(`Connected to DB ${connection.db.databaseName} on host ${connection.host} on port: ${connection.port}`)
               })
               connection.on('error', (err) => {
                 logger.error(`Error connecting to MongoDB: ${err}`)
@@ -45,7 +44,6 @@ const connections = [
     ),
     NotificationsModule,
     NotificationBuilderModule,
-    SnsModule,
   ],
 })
 export class AppModule {}
