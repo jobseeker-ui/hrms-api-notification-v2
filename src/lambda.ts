@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core'
 import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { Handler } from 'aws-lambda'
 import serverless from 'serverless-http'
+import { HttpExceptionFilter } from './common/filters/http-exception.filter'
+import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 import { AppModule } from './sns/app.module'
 
 process.env.NO_COLOR = 'true'
@@ -16,13 +18,15 @@ async function bootstrap() {
   app.enableCors()
   app.useGlobalPipes(
     new ValidationPipe({
-      transform: true, // Automatically transform payloads to DTO instances
-      whitelist: true, // Strip properties not present in the DTO
-      forbidNonWhitelisted: true, // Throw an error if unknown properties are passed
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
     }),
   )
-  await app.init() // Important to initialize the app
-  return SLS?.(app.getHttpAdapter().getInstance()) // Wrap the Fastify app with serverless-http
+  app.useGlobalFilters(new HttpExceptionFilter())
+  app.useGlobalInterceptors(new ResponseInterceptor())
+  await app.init()
+  return SLS?.(app.getHttpAdapter().getInstance())
 }
 
 export const handler: Handler = async (...ctx) => {

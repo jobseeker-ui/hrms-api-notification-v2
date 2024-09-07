@@ -14,6 +14,11 @@ export class NotificationsController {
     return this.notificationsService.paginate(employeeId, paginateNotificationsDto)
   }
 
+  @Get('/counter')
+  counter(@EmployeeId() employeeId: Types.ObjectId) {
+    return this.notificationsService.getTotalNotificationsGroupedByGroup(employeeId)
+  }
+
   @Patch(':id')
   markAsRead(@Param('id', IsMongoIdPipe) notificationId: string, @EmployeeId() employeeId: Types.ObjectId) {
     return this.notificationsService.markAsRead(employeeId, new Types.ObjectId(notificationId))

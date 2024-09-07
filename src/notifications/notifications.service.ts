@@ -2,8 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { FilterQuery, Model, Types } from 'mongoose'
 import { ConnectionNameEnum } from 'src/common/enums/connection-name.enum'
-import { Applicant, ApplicantDocument } from 'src/schemas/applicant.schema'
-import { Employee, EmployeeDocument } from 'src/schemas/employee.schema'
 import { Notification, NotificationDocument } from '../schemas/notification.schema'
 import { PaginateNotificationsDto } from './dto/paginate-notifications.dto'
 
@@ -12,10 +10,6 @@ export class NotificationsService {
   constructor(
     @InjectModel(Notification.name, ConnectionNameEnum.NOTIFICATION)
     private notificationModel: Model<NotificationDocument>,
-    @InjectModel(Employee.name, ConnectionNameEnum.EMPLOYEE)
-    private employeeModel: Model<EmployeeDocument>,
-    @InjectModel(Applicant.name, ConnectionNameEnum.VACANCY)
-    private applicantModel: Model<ApplicantDocument>,
   ) {}
 
   async paginate(ownerId: Types.ObjectId, paginateNotificationsDto: PaginateNotificationsDto) {
@@ -68,7 +62,7 @@ export class NotificationsService {
       },
     ])
 
-    return result
+    return result.map((el) => ({ group: el._id, totalCount: el.totalCount, unreadCount: el.unreadCount }))
   }
 
   async markAsRead(ownerId: Types.ObjectId, notificationId: Types.ObjectId) {
