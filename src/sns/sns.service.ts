@@ -1,11 +1,10 @@
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns'
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class SnsService {
   private readonly snsClient: SNSClient
-  private readonly logger = new Logger(SnsService.name)
   private readonly broadcasterTopicArn: string
 
   constructor(private readonly configService: ConfigService) {
@@ -31,9 +30,9 @@ export class SnsService {
       })
 
       const response = await this.snsClient.send(command)
-      this.logger.log(`Message sent successfully to topic with MessageId: ${response.MessageId}`)
+      console.log(`Message sent successfully to topic with MessageId: ${response.MessageId}`)
     } catch (error) {
-      this.logger.error('Error sending message to SNS topic', error)
+      console.error('Error sending message to SNS topic', error)
       throw new Error('Failed to send message to SNS topic')
     }
   }
@@ -45,7 +44,7 @@ export class SnsService {
    */
   async publishToBroadcaster(message: string, subject?: string): Promise<void> {
     if (!this.broadcasterTopicArn) {
-      this.logger.error('Broadcast topic ARN is not defined in the environment variables')
+      console.error('Broadcast topic ARN is not defined in the environment variables')
       throw new Error('Broadcast topic ARN is missing')
     }
 
@@ -57,9 +56,9 @@ export class SnsService {
       })
 
       const response = await this.snsClient.send(command)
-      this.logger.log(`Broadcast message sent successfully with MessageId: ${response.MessageId}`)
+      console.log(`Broadcast message sent successfully with MessageId: ${response.MessageId}`)
     } catch (error) {
-      this.logger.error('Error sending broadcast message to SNS topic', error)
+      console.error('Error sending broadcast message to SNS topic', error)
       throw new Error('Failed to send broadcast message to SNS topic')
     }
   }

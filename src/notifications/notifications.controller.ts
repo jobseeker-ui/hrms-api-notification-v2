@@ -14,7 +14,7 @@ export class NotificationsController {
     return this.notificationsService.paginate(employeeId, paginateNotificationsDto)
   }
 
-  @Get('/counter')
+  @Get('/details')
   counter(@EmployeeId() employeeId: Types.ObjectId) {
     return this.notificationsService.getTotalNotificationsGroupedByGroup(employeeId)
   }
@@ -22,5 +22,10 @@ export class NotificationsController {
   @Patch(':id')
   markAsRead(@Param('id', IsMongoIdPipe) notificationId: string, @EmployeeId() employeeId: Types.ObjectId) {
     return this.notificationsService.markAsRead(employeeId, new Types.ObjectId(notificationId))
+  }
+
+  @Patch('/read-all/:group')
+  markAllAsRead(@EmployeeId() employeeId: Types.ObjectId, @Param('group') group: string) {
+    return this.notificationsService.markAllAsRead(employeeId, group)
   }
 }

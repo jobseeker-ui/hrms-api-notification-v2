@@ -1,20 +1,19 @@
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
-import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { Handler } from 'aws-lambda'
 import serverless from 'serverless-http'
+import { AppModule } from './app.module'
 import { HttpExceptionFilter } from './common/filters/http-exception.filter'
 import { ResponseInterceptor } from './common/interceptors/response.interceptor'
-import { AppModule } from './sns/app.module'
 
 process.env.NO_COLOR = 'true'
 
 let server: Handler
 
-const SLS = serverless || require('serverless-http')
+const SLS: typeof serverless = serverless || require('serverless-http')
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, new FastifyAdapter())
+  const app = await NestFactory.create(AppModule, { logger: false })
   app.enableCors()
   app.useGlobalPipes(
     new ValidationPipe({
@@ -25,7 +24,7 @@ async function bootstrap() {
   )
   app.useGlobalFilters(new HttpExceptionFilter())
   app.useGlobalInterceptors(new ResponseInterceptor())
-  await app.init()
+  app.init()
   return SLS?.(app.getHttpAdapter().getInstance())
 }
 

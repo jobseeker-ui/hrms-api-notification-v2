@@ -31,7 +31,7 @@ export class NotificationsService {
     const totalPages = Math.ceil(totalElements / limit)
 
     return {
-      items: notifications,
+      content: notifications,
       totalElements,
       totalPages,
     }
@@ -52,9 +52,9 @@ export class NotificationsService {
           unreadCount: {
             $sum: {
               $cond: {
-                if: { $eq: ['$read_at', null] },
-                then: 1,
-                else: 0,
+                if: { $not: ['$read_at'] }, // Check for null or undefined
+                then: 1, // Count as unread
+                else: 0, // Otherwise, count as read
               },
             },
           },

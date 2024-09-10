@@ -4,7 +4,7 @@ import { MongooseJsonTransformer } from 'src/common/utils/mongoose-json-transfor
 
 export type NotificationDocument = HydratedDocument<Notification>
 
-@Schema({ toJSON: MongooseJsonTransformer })
+@Schema({ toJSON: MongooseJsonTransformer, timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Notification {
   @Prop({ required: true, alias: 'ownerId', type: Types.ObjectId })
   owner_id!: Types.ObjectId

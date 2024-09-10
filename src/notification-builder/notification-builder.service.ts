@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { SQSEvent, SQSRecord } from 'aws-lambda'
 import { plainToInstance } from 'class-transformer'
 import { validateOrReject } from 'class-validator'
@@ -9,8 +9,6 @@ import { CreateNotificationDto } from './dto/create-notification.dto'
 
 @Injectable()
 export class NotificationBuilderService {
-  private readonly logger = new Logger(NotificationBuilderService.name)
-
   constructor(
     private readonly candidateAppliedService: CandidateAppliedService,
     private readonly snsService: SnsService,
@@ -23,9 +21,9 @@ export class NotificationBuilderService {
   async handleSQSMessages(event: SQSEvent): Promise<void> {
     try {
       await Promise.all(event.Records.map((record) => this.processMessage(record)))
-      this.logger.log('All SQS messages processed successfully')
+      console.log('All SQS messages processed successfully')
     } catch (error) {
-      this.logger.error('Error processing SQS messages', { error })
+      console.error('Error processing SQS messages', { error })
       throw new Error('Failed to process some SQS messages')
     }
   }
@@ -36,13 +34,13 @@ export class NotificationBuilderService {
    */
   private async processMessage(record: SQSRecord): Promise<void> {
     const { messageId, body } = record
-    this.logger.log(`Processing message with ID: ${messageId}`)
+    console.log(`Processing message with ID: ${messageId}`)
 
     try {
       const data = await this.parseAndValidateMessage(body)
       await this.handleNotificationType(data)
     } catch (error) {
-      this.logger.error(`Failed to process message with ID: ${messageId}`, { error })
+      console.error(`Failed to process message with ID: ${messageId}`, { error })
     }
   }
 
@@ -57,7 +55,7 @@ export class NotificationBuilderService {
       await validateOrReject(data)
       return data
     } catch (validationErrors) {
-      this.logger.error('Message validation failed', { validationErrors, messageBody })
+      console.error('Message validation failed', { validationErrors, messageBody })
       throw new Error('Invalid message format')
     }
   }
@@ -69,14 +67,14 @@ export class NotificationBuilderService {
   private async handleNotificationType(data: CreateNotificationDto): Promise<void> {
     const { type, applicantId } = data
 
-    this.logger.log(`Handling notification of type: ${type} for applicant ID: ${applicantId}`)
+    console.log(`Handling notification of type: ${type} for applicant ID: ${applicantId}`)
 
     switch (type) {
       case NotificationTypeEnum.CANDIDATE_APPLIED:
         await this.processCandidateApplied(data)
         break
       default:
-        this.logger.warn(`Unsupported notification type: ${type}`)
+        console.warn(`Unsupported notification type: ${type}`)
     }
   }
 
@@ -90,10 +88,10 @@ export class NotificationBuilderService {
 
       await Promise.all(notifications.map((notification) => this.snsService.publishToBroadcaster(JSON.stringify(notification.toJSON()))))
 
-      this.logger.log(`Notifications published successfully for applicant ID: ${data.applicantId}`)
+      console.log(`Notifications published successfully for applicant ID: ${data.applicantId}`)
     } catch (error) {
       error
-      this.logger.error('Error generating notifications for CANDIDATE_APPLIED', { data, error })
+      console.error('Error generating notifications for CANDIDATE_APPLIED', { data, error })
       throw new Error('Failed to generate notifications')
     }
   }

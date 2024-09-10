@@ -4,6 +4,7 @@ import ApiError from '../exceptions/api-error'
 
 export const EmployeeId = createParamDecorator((data: unknown, ctx: ExecutionContext): Types.ObjectId => {
   const request = ctx.switchToHttp().getRequest()
+
   const employeeId = request.requestContext ? request.requestContext.authorizer?.employee_id : request.headers['employee_id']
 
   if (!isValidObjectId(employeeId)) {

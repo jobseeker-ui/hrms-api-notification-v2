@@ -1,7 +1,7 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import { Handler, SQSEvent } from 'aws-lambda'
-import { AppModule } from '../sns/app.module'
+import { AppModule } from '../app.module'
 import { NotificationBuilderService } from './notification-builder.service'
 
 let cachedApp: INestApplication | null = null
