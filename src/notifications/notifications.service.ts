@@ -13,7 +13,7 @@ export class NotificationsService {
   ) {}
 
   async paginate(ownerId: Types.ObjectId, paginateNotificationsDto: PaginateNotificationsDto) {
-    const { skip = 0, limit = 20, sortDirection = 'DESC', sortedField = 'createdAt', group } = paginateNotificationsDto
+    const { skip = 0, limit = 20, sortDirection = 'DESC', sortedField = 'created_at', group } = paginateNotificationsDto
     const query: FilterQuery<NotificationDocument> = {
       owner_id: ownerId,
       deleted_at: { $exists: false },

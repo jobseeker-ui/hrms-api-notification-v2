@@ -21,7 +21,7 @@ export class BasePaginationQueryDto {
 
   @IsOptional()
   @IsString()
-  sortedField?: string = 'createdAt'
+  sortedField?: string = 'created_at'
 
   @IsOptional()
   @IsString()
