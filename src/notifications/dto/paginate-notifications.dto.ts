@@ -7,7 +7,7 @@ export enum SortDirection {
 }
 
 export enum SortField {
-  createdAt = 'createdAt',
+  createdAt = 'created_at',
 }
 
 export class PaginateNotificationsDto {
