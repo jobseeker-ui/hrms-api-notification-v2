@@ -9,7 +9,7 @@ Globals:
     Timeout: 29
     Environment:
       Variables:
-        SQS_QUEUE_URL: !Ref NotificationQueue
+        SQS_QUEUE_URL: !Ref NotificationDevQueue
         SNS_CREATE_NOTIFICATION_TOPIC: !Ref SnsTopicCreateNotificationARN
         SNS_BROADCAST_TOPIC_ARN: !Ref SnsTopicBroadcastNotificationARN
         DB_NOTIFICATION: !Ref NotificationDB
@@ -50,36 +50,36 @@ Parameters:
 
 Resources:
   # SQS Queue
-  NotificationQueue:
+  NotificationDevQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: doCreateNotification_dev_queue
 
   # SQS Queue Policy
-  NotificationQueuePolicy:
+  NotificationDevQueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
       Queues:
-        - !Ref NotificationQueue
+        - !Ref NotificationDevQueue
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal: '*'
             Action: 'sqs:SendMessage'
-            Resource: !GetAtt NotificationQueue.Arn
+            Resource: !GetAtt NotificationDevQueue.Arn
             Condition:
               ArnEquals:
                 'aws:SourceArn': !Ref SnsTopicCreateNotificationARN
 
   # SNS Topic Subscription
-  NotificationTopicSubscription:
+  NotificationDevTopicSubscription:
     Type: AWS::SNS::Subscription
     Properties:
       Protocol: sqs
       RawMessageDelivery: true
       TopicArn: !Ref SnsTopicCreateNotificationARN
-      Endpoint: !GetAtt NotificationQueue.Arn
+      Endpoint: !GetAtt NotificationDevQueue.Arn
 
   # API Gateway
   HRMSNotificationDevAPI:
@@ -128,7 +128,7 @@ Resources:
             RestApiId: !Ref HRMSNotificationDevAPI
 
   # Lambda Function for SQS
-  SQSHandlerFunction:
+  SQSHandlerDevFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: dist/notification-builder/sqs.handler
@@ -141,7 +141,7 @@ Resources:
           - !Ref VPCSubnet2
       Policies:
         - SQSSendMessagePolicy:
-            QueueName: !Ref NotificationQueue
+            QueueName: !Ref NotificationDevQueue
         - Statement:
             Effect: Allow
             Action: 'sns:Publish'
@@ -152,7 +152,7 @@ Resources:
         SQSQueueEvent:
           Type: SQS
           Properties:
-            Queue: !GetAtt NotificationQueue.Arn
+            Queue: !GetAtt NotificationDevQueue.Arn
             BatchSize: 5
 
 Outputs:
@@ -163,15 +163,15 @@ Outputs:
 
   QueueUrl:
     Description: URL of the SQS Queue
-    Value: !Ref NotificationQueue
+    Value: !Ref NotificationDevQueue
     Export:
-      Name: NotificationQueueUrl
+      Name: NotificationDevQueueUrl
 
   QueueArn:
     Description: ARN of the SQS Queue
-    Value: !GetAtt NotificationQueue.Arn
+    Value: !GetAtt NotificationDevQueue.Arn
     Export:
-      Name: NotificationQueueArn
+      Name: NotificationDevQueueArn
 
   TopicArn:
     Description: ARN of the SNS Topic
