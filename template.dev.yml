@@ -53,7 +53,7 @@ Resources:
   NotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: doCreateNotification
+      QueueName: doCreateNotification_dev_queue
 
   # SQS Queue Policy
   NotificationQueuePolicy:
