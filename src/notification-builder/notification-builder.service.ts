@@ -5,12 +5,14 @@ import { validateOrReject } from 'class-validator'
 import { NotificationTypeEnum } from 'src/common/enums/notification-type.enum'
 import { SnsService } from 'src/sns/sns.service'
 import { CandidateAppliedService } from './builders/candidate-applied.service'
+import { VacancyPublishedService } from './builders/vacancy-published.service'
 import { CreateNotificationDto } from './dto/create-notification.dto'
 
 @Injectable()
 export class NotificationBuilderService {
   constructor(
     private readonly candidateAppliedService: CandidateAppliedService,
+    private readonly vacancyPublishedService: VacancyPublishedService,
     private readonly snsService: SnsService,
   ) {}
 
@@ -65,34 +67,42 @@ export class NotificationBuilderService {
    * @param data - The validated CreateNotificationDto data.
    */
   private async handleNotificationType(data: CreateNotificationDto): Promise<void> {
-    const { type, applicantId } = data
+    const { type, objectId } = data
 
-    console.log(`Handling notification of type: ${type} for applicant ID: ${applicantId}`)
+    console.log(`Handling notification of type: ${type} for object ID: ${objectId}`)
 
     switch (type) {
       case NotificationTypeEnum.CANDIDATE_APPLIED:
-        await this.processCandidateApplied(data)
+        try {
+          const notifications = await this.candidateAppliedService.create(data)
+
+          await Promise.all(
+            notifications.map((notification) => this.snsService.publishToBroadcaster(JSON.stringify(notification.toJSON()))),
+          )
+
+          console.log(`Notifications published successfully for object ID: ${data.objectId}`)
+        } catch (error) {
+          error
+          console.error('Error generating notifications for CANDIDATE_APPLIED', { data, error })
+          throw new Error('Failed to generate notifications')
+        }
+        break
+      case NotificationTypeEnum.VACANCY_PUBLISHED:
+        try {
+          const notifications = await this.vacancyPublishedService.create(data)
+
+          await Promise.all(
+            notifications.map((notification) => this.snsService.publishToBroadcaster(JSON.stringify(notification.toJSON()))),
+          )
+
+          console.log(`Notifications published successfully for object ID: ${data.objectId}`)
+        } catch (error) {
+          console.error('Error generating notifications for CANDIDATE_APPLIED', { data, error })
+          throw new Error('Failed to generate notifications')
+        }
         break
       default:
         console.warn(`Unsupported notification type: ${type}`)
-    }
-  }
-
-  /**
-   * Process notifications of type CANDIDATE_APPLIED.
-   * @param data - The validated CreateNotificationDto data.
-   */
-  private async processCandidateApplied(data: CreateNotificationDto): Promise<void> {
-    try {
-      const notifications = await this.candidateAppliedService.create(data)
-
-      await Promise.all(notifications.map((notification) => this.snsService.publishToBroadcaster(JSON.stringify(notification.toJSON()))))
-
-      console.log(`Notifications published successfully for applicant ID: ${data.applicantId}`)
-    } catch (error) {
-      error
-      console.error('Error generating notifications for CANDIDATE_APPLIED', { data, error })
-      throw new Error('Failed to generate notifications')
     }
   }
 }

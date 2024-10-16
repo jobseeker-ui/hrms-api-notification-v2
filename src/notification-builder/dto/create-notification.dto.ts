@@ -8,5 +8,9 @@ export class CreateNotificationDto {
 
   @IsMongoId()
   @IsOptional()
-  applicantId?: string
+  objectId?: string
+
+  @IsMongoId()
+  @IsOptional()
+  ownerId?: string
 }

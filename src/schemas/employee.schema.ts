@@ -17,6 +17,12 @@ export class Employee {
   status?: string
   @Prop({ alias: 'employeeCode' })
   employee_code?: string
+  @Prop({ alias: 'photoProfile' })
+  photo_profile?: {
+    thumbnail: { link: string; mime_type: string }
+    link: string
+    mime_type: string
+  }
   @Prop({ alias: 'deletedAt' })
   deleted_at?: Date
 }

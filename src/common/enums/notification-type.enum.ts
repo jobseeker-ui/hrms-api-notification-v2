@@ -1,3 +1,4 @@
 export enum NotificationTypeEnum {
   CANDIDATE_APPLIED = 'CANDIDATE_APPLIED',
+  VACANCY_PUBLISHED = 'VACANCY_PUBLISHED',
 }

@@ -25,7 +25,7 @@ export class CandidateAppliedService {
   async create(createNotificationDto: CreateNotificationDto) {
     try {
       this.validateNotification(createNotificationDto)
-      const result = await this.generate(createNotificationDto.applicantId)
+      const result = await this.generate(createNotificationDto.objectId)
       return result
     } catch (error) {
       console.error('Failed to create notification', { error, createNotificationDto })
@@ -33,22 +33,22 @@ export class CandidateAppliedService {
     }
   }
 
-  private validateNotification({ type, applicantId }: CreateNotificationDto): void {
+  private validateNotification({ type, objectId }: CreateNotificationDto): void {
     if (type !== this.type) {
       throw new BadRequestException(`Invalid notification type: ${type}`)
     }
 
-    if (!applicantId) {
+    if (!objectId) {
       throw new BadRequestException('Applicant ID is required')
     }
   }
 
-  private async generate(applicantId: string): Promise<NotificationDocument[]> {
-    const applicant = await this.applicantModel.findById(applicantId)
+  private async generate(objectId: string): Promise<NotificationDocument[]> {
+    const applicant = await this.applicantModel.findById(objectId)
 
     if (!applicant) {
-      console.warn(`Applicant with ID ${applicantId} not found`)
-      throw new NotFoundException(`Applicant with ID ${applicantId} not found`)
+      console.warn(`Applicant with ID ${objectId} not found`)
+      throw new NotFoundException(`Applicant with ID ${objectId} not found`)
     }
 
     const employees = await this.employeeModel.find({ 'company._id': applicant.company._id, deleted_at: { $exists: false } }).exec()

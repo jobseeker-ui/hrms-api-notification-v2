@@ -7,6 +7,7 @@ import { Employee, EmployeeSchema } from 'src/schemas/employee.schema'
 import { Notification, NotificationSchema } from 'src/schemas/notification.schema'
 import { SnsModule } from 'src/sns/sns.module'
 import { CandidateAppliedService } from './candidate-applied.service'
+import { VacancyPublishedService } from './vacancy-published.service'
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { CandidateAppliedService } from './candidate-applied.service'
     NotificationsModule,
     SnsModule,
   ],
-  providers: [CandidateAppliedService, CandidateAppliedService],
-  exports: [CandidateAppliedService],
+  providers: [CandidateAppliedService, VacancyPublishedService],
+  exports: [CandidateAppliedService, VacancyPublishedService],
 })
-export class CandidateAppliedModule {}
+export class BuildersModule {}
