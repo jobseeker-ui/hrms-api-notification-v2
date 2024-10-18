@@ -172,9 +172,3 @@ Outputs:
     Value: !GetAtt NotificationDevQueue.Arn
     Export:
       Name: NotificationDevQueueArn
-
-  TopicArn:
-    Description: ARN of the SNS Topic
-    Value: !Ref SnsTopicCreateNotificationARN
-    Export:
-      Name: NotificationTopicArn
