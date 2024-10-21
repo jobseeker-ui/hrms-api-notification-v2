@@ -47,9 +47,6 @@ Parameters:
     Type: String
   SnsTopicCreateNotificationARN:
     Type: String
-  CustomDomainName:
-    Type: String
-    Description: The existing custom domain name for the API (e.g., api.example.com)
 
 Resources:
   # SQS Queue
@@ -104,10 +101,6 @@ Resources:
                 - Authorization
               ReauthorizeEvery: 0
         AddDefaultAuthorizerToCorsPreflight: False
-    Domain:
-      DomainName: !Ref CustomDomainName
-      Route53:
-        Enabled: false
 
   # Lambda Function for HRMS
   HRMSNotificationDevLambda:
