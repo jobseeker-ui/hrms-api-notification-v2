@@ -1,12 +1,12 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
-Description: Combined SAM template for HRMS Notification Prod functions and TESTNotificationService.
+Description: Combined SAM template for HRMS Notification Prod functions.
 
 Globals:
   Function:
     Runtime: nodejs20.x
-    MemorySize: 1024
-    Timeout: 29
+    MemorySize: 2048 # Increased for production
+    Timeout: 30 # Adjusted for production
     Environment:
       Variables:
         SQS_QUEUE_URL: !Ref NotificationQueue
@@ -22,7 +22,7 @@ Globals:
 Parameters:
   StageEnv:
     Type: String
-    Default: prod
+    Default: prod # Changed to prod
   AtlasAccess:
     Type: String
   VPCSecurityGroup:
@@ -53,7 +53,7 @@ Resources:
   NotificationQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: doCreateNotification_dev_queue
+      QueueName: doCreateNotification_queue
 
   # SQS Queue Policy
   NotificationQueuePolicy:
@@ -70,10 +70,10 @@ Resources:
             Resource: !GetAtt NotificationQueue.Arn
             Condition:
               ArnEquals:
-                'aws:SourceArn': !Ref SnsTopicCreateNotificationARN
+                aws:SourceArn: !Ref SnsTopicCreateNotificationARN
 
   # SNS Topic Subscription
-  NotificationDevTopicSubscription:
+  NotificationTopicSubscription:
     Type: AWS::SNS::Subscription
     Properties:
       Protocol: sqs
@@ -82,7 +82,7 @@ Resources:
       Endpoint: !GetAtt NotificationQueue.Arn
 
   # API Gateway
-  HRMSNotificationDevAPI:
+  HRMSNotificationProdAPI:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref StageEnv
@@ -103,13 +103,24 @@ Resources:
         AddDefaultAuthorizerToCorsPreflight: False
 
   # Lambda Function for HRMS
-  HRMSNotificationDevLambda:
+  HRMSNotificationProdLambda:
     Type: AWS::Serverless::Function
     Properties:
       Handler: dist/lambda.handler
       CodeUri: ./.serverless/build/app.zip
       Policies:
         - arn:aws:iam::730335295088:policy/LambdaWithPrivateLinkExecutionRole
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - sns:Publish
+                - sqs:SendMessage
+              Resource:
+                - !Ref SnsTopicCreateNotificationARN
+                - !Ref SnsTopicBroadcastNotificationARN
+                - !GetAtt NotificationQueue.Arn
+
       VpcConfig:
         SecurityGroupIds:
           - !Ref VPCSecurityGroup
@@ -125,10 +136,10 @@ Resources:
           Properties:
             Path: /{proxy+}
             Method: ANY
-            RestApiId: !Ref HRMSNotificationDevAPI
+            RestApiId: !Ref HRMSNotificationProdAPI
 
   # Lambda Function for SQS
-  SQSHandlerDevFunction:
+  SQSHandlerProdFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: dist/notification-builder/sqs.handler
@@ -140,8 +151,14 @@ Resources:
           - !Ref VPCSubnet1
           - !Ref VPCSubnet2
       Policies:
-        - SQSSendMessagePolicy:
-            QueueName: !Ref NotificationQueue
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'sqs:ReceiveMessage'
+                - 'sqs:DeleteMessage'
+                - 'sqs:GetQueueAttributes'
+              Resource: !GetAtt NotificationQueue.Arn
         - Statement:
             Effect: Allow
             Action: 'sns:Publish'
@@ -156,10 +173,10 @@ Resources:
             BatchSize: 5
 
 Outputs:
-  HRMSNotificationDevEndpoint:
-    Description: API Gateway HRMS Notification Dev
+  HRMSNotificationProdEndpoint:
+    Description: API Gateway HRMS Notification Prod
     Value:
-      Fn::Sub: https://${HRMSNotificationDevAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageEnv}/
+      Fn::Sub: https://${HRMSNotificationProdAPI}.execute-api.${AWS::Region}.amazonaws.com/${StageEnv}/
 
   QueueUrl:
     Description: URL of the SQS Queue
