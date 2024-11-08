@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document } from 'mongoose'
+import { Document, Types } from 'mongoose'
 import { MongooseJsonTransformer } from 'src/common/utils/mongoose-json-transformer'
 import { GeneralDataEmbed } from './embed/general-data.schema'
 
@@ -94,6 +94,7 @@ export class LastEducation {
 
 @Schema()
 export class Vacancy {
+  _id: Types.ObjectId
   @Prop({ type: String })
   name: string
 }

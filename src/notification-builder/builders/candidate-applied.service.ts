@@ -64,7 +64,7 @@ export class CandidateAppliedService {
       name: applicant.candidate.name || '',
       photoUrl: applicant.candidate.photo_profile || '',
       ownerId: employee._id,
-      path: `/candidates/management?search=${encodeURIComponent(applicant.candidate.name)}`,
+      path: `/candidates/management?search=${encodeURIComponent(applicant.candidate.name)}&vacancy=${applicant.vacancy._id.toString()}|${applicant.vacancy.name}`,
       message: `${applicant.candidate.name} has applied for a job (${applicant.vacancy.name}).`,
     }))
 
